@@ -10,8 +10,8 @@ margs<-commandArgs(T)
 chrom=margs[1]
 individual=margs[2]
 
-subset=paste0("/project/cphg-millerlab/chani/UVA_vcfs/lamatrix/UVA_b37_chr",chrom,"_filtered.vcf.gz")
-mapfile=paste0("/project/cphg-millerlab/chani/rfmix/rfmix2/chr",chrom,"_UVA_local_QTL.msp.tsv")
+subset=paste0("/path/to/your/VCF/UVA_b37_chr",chrom,"_filtered.vcf.gz")
+mapfile=paste0("/path/to/your/rfmixresults/chr",chrom,"_UVA_local_QTL.msp.tsv")
 
 vcf <- fread(subset)
 setnames(vcf, c("#CHROM", "POS", "ID"), c("chr", "pos", "rsid"))
@@ -109,7 +109,7 @@ write.table(newvcf, paste0("/project/cphg-millerlab/chani/QTL_input/local_anc/ch
         newvcf <- newvcf[, c(1:3,18:23)]
         print(newvcf)
 
-        write.table(newvcf, paste0("/project/cphg-millerlab/chani/QTL_input/local_anc/chr",chrom,"/",indiv, "_chr", chrom,"_hg19.maf1.localcov.tsv"), row.names=F, quote=F, sep="\t", append=T, col.names=F)
+        write.table(newvcf, paste0("/path/to/your/QTLinput/datasets/chr",chrom,"/",indiv, "_chr", chrom,"_hg19.maf1.localcov.tsv"), row.names=F, quote=F, sep="\t", append=T, col.names=F)
         }
 }
 
