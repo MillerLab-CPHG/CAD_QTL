@@ -12,8 +12,8 @@
 
 ######################
 
-a="account=cphg-millerlab-vip"
-p="p standard"
+a="account=usergroupname"
+p="p slurmqueue"
 
 module load vcftools bcftools tabix plink
 
@@ -22,18 +22,18 @@ for chr in "22"; do
         while read gene; do #this wrapper could be gene-name based or ensg based, check which is easier for you.
 
 ########### Step 1 ###########
-#       zcat /scratch/ch2um/mixqtl_gwas_forpaintor_chr${chr}.txt.gz | grep "${gene}$" | cut -f3 -d ' ' > /scratch/ch2um/genes/${gene}_snplist.tmp
-#       vcf_in="/project/cphg-millerlab/chani/1000G_vcfs/hg38_EURnoFIN_paintor.vcf.gz"
-#       keepsnpsfile="/scratch/ch2um/genes/${gene}_snplist.tmp"
-#       vcf_out="/scratch/ch2um/genes/${gene}_hg38_EURnoFIN_paintor"
+#       zcat /scratch/userid/mixqtl_gwas_forpaintor_chr${chr}.txt.gz | grep "${gene}$" | cut -f3 -d ' ' > /scratch/ch2um/genes/${gene}_snplist.tmp
+#       vcf_in="/path/to/your/reference_vcf/hg38_ancestry_population.vcf.gz"
+#       keepsnpsfile="/scratch/userid/genes/${gene}_snplist.tmp"
+#       vcf_out="/scratch/userid/genes/${gene}_hg38_ancestry_population"
 
 #       m="mem=40g"
 #       t="t 2:00:00"
 #       sbatch --$a --$m -$t -$p --wrap="vcftools --gzvcf $vcf_in --recode --out $vcf_out --snps $keepsnpsfile --chr chr$chr"
 
 ########### Step 2 ###########
-#       vcf_out="/scratch/ch2um/genes/${gene}_hg38_EURnoFIN_paintor"
-#       bed="1000G_EURnoFIN_plink"
+#       vcf_out="/scratch/userid/genes/${gene}_hg38_ancestry_population"
+#       bed="hg38_ancestry_population"
 #       mv ${vcf_out}.recode.vcf ${vcf_out}.vcf
 #       bgzip ${vcf_out}.vcf
 #       tabix -f ${vcf_out}.vcf.gz
@@ -51,7 +51,7 @@ for chr in "22"; do
 #       sbatch -o ${gene}_LD.blog -n 2 --$a --$m -$t -$p --wrap="plink --bfile $bfile --r2 square spaces --chr $chr --out $outfile"  
 
 ########### Step 4 ###########
-#       vcf_out="/scratch/userid/genes/${gene}_hg38_EURnoFIN_paintor"
+#       vcf_out="/scratch/userid/genes/${gene}_hg38_ancestry_population"
 #       bfile="/scratch/userid/${gene}_${bed}"
 #       keepsnpsfile="/scratch/userid/genes/${gene}_snplist.tmp"
 #       rm $bfile $keepsnpsfile $vcf_out
