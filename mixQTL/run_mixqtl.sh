@@ -4,17 +4,17 @@
 ########## Data formats and examples for each script can be found here: https://github.com/hakyimlab/mixqtl/wiki/Example-and-tutorial-of-command-line-tool
 
 ###pathnames for scripts used below
-parse_script="/project/cphg-millerlab/chani/scripts/mixQTL/parse_vcf.py"
-gencode_script="/project/cphg-millerlab/chani/scripts/mixQTL/parse_gencode.py"
-exp_parse_script="/project/cphg-millerlab/chani/scripts/mixQTL/parse_expression.py"
+parse_script="/path/to/libsize/file/scripts/mixQTL/parse_vcf.py"
+gencode_script="/path/to/libsize/file/scripts/mixQTL/parse_gencode.py"
+exp_parse_script="/path/to/libsize/file/scripts/mixQTL/parse_expression.py"
 
 ###pathnames for directories and files called by aforementioned scripts 
-gencode_dir="/project/cphg-millerlab/reference_genomes/gencode"
+gencode_dir="/path/to/reference/file/gencode"
 v37="gencode.v37.annotation.gtf.gz"
 
-mixqtldir="/project/cphg-millerlab/chani/scripts/mixQTL"
-vcfdir="/project/cphg-millerlab/chani/chr15_hg38_noindels.vcf.gz"
-input_dir="/project/cphg-millerlab/chani/QTL_input/mixqtl"
+mixqtldir="/path/to/file/mixQTL"
+vcfdir="/path/to/vcf/file/chr15_hg38_noindels.vcf.gz"
+input_dir="/path/to/input/files/mixqtl"
 
 ############################# running prep scripts from mixQTL github
 
@@ -40,8 +40,8 @@ exp_reads="/path/to/expression/rawreads/raw_readcounts_filtered_merged.txt.gz"
 
 module load gcc/7.1.0 openmpi/3.1.4 R/4.0.0
 
-a="cphg-millerlab-vip"
-p="standard"
+a="groupname"
+p="queue"
 t="4:00:00"
 m="50g"
 
@@ -52,6 +52,6 @@ for i in "22"; do
 hap1="converted_chr${i}_hap1.txt.gz"
 hap2="converted_chr${i}_hap2.txt.gz"
 
-        sbatch --account=$a -p $p -t $t --mem=$m --wrap="Rscript $mixqtldir/run_mixqtl.R -library_size $input_dir/$lib_size -variant_annotation $input_dir/converted_chr${i}$var_annot -window 500000 -haplotype_1 $input_dir/$hap1 -haplotype_2 $input_dir/$hap2 -covariates $covs -expression_annotation $exp_annot -expression_total_count $input_dir/../$exp_reads -expression_count_1 $input_dir/haps_expression_one.tsv.gz -expression_count_2 $input_dir/haps_expression_two.tsv.gz -output mixQTL_res_chr${i}_Jul8.tsv.gz -trc_cutoff 10"
+        sbatch --account=$a -p $p -t $t --mem=$m --wrap="Rscript $mixqtldir/run_mixqtl.R -library_size $input_dir/$lib_size -variant_annotation $input_dir/converted_chr${i}$var_annot -window 500000 -haplotype_1 $input_dir/$hap1 -haplotype_2 $input_dir/$hap2 -covariates $covs -expression_annotation $exp_annot -expression_total_count $input_dir/../$exp_reads -expression_count_1 $input_dir/haps_expression_one.tsv.gz -expression_count_2 $input_dir/haps_expression_two.tsv.gz -output mixQTL_res_chr${i}_date.tsv.gz -trc_cutoff 10"
 
 done
