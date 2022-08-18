@@ -25,7 +25,7 @@ setnames(j, c("HDL_hit2", "HDL_hit1", "HDL_nsnps", "HDL_PPH3", "HDL_PPH4", "HDL_
 i <- fread("LDL_metaanalysis_coloc_Aug2022.txt", select=c(1:3,7:11,14))
 setnames(i, c("LDL_hit2", "LDL_hit1", "LDL_nsnps", "LDL_PPH3", "LDL_PPH4", "LDL_best1", "LDL_best2", "LDL_best4", "gene_name"))
 k <- fread("logTG_metaanalysis_coloc_Aug2022.txt", select=c(1:3,7:11,14))
-setnames(k, c("logTG_hit2", "logTG_hit1", "logTG_nsnps", "logTG_PPH3", "logTG_PPH4", "logTG_best1", "logTG_best2", "logTG_best4"))
+setnames(k, c("logTG_hit2", "logTG_hit1", "logTG_nsnps", "logTG_PPH3", "logTG_PPH4", "logTG_best1", "logTG_best2", "logTG_best4", "gene_name"))
 l <- fread("CHARGE_plaque_coloc_Aug2022.txt", select=c(1:3,7:11,14))
 setnames(l, c("CHARGE_plaque_hit2", "CHARGE_plaque_hit1", "CHARGE_plaque_nsnps", "CHARGE_plaque_PPH3", "CHARGE_plaque_PPH4", "CHARGE_plaque_best1", "CHARGE_plaque_best2", "CHARGE_plaque_best4", "gene_name"))
 m <- fread("CHARGE_IMT_meta_coloc_Aug2022.txt", select=c(1:3,7:11,14))
@@ -36,8 +36,10 @@ o <- fread("Topmed_CAC_coloc_Aug2022.txt", select=c(1:3,7:11,14))
 setnames(o, c("Topmed_CAC_hit2", "Topmed_CAC_hit1", "Topmed_CAC_nsnps", "Topmed_CAC_PPH3", "Topmed_CAC_PPH4", "Topmed_CAC_best1", "Topmed_CAC_best2", "Topmed_CAC_best4", "gene_name"))
 
 genes <- list(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o)
-coloc <- reduce(genes, by = gene_name)
-coloc[, coloc_evidence:=ifelse(Topmed_CAC_PPH4>0.8 | CAC_1KG_PPH4>0.8 | CHARGE_IMT_PPH4>0.8 | CHARGE_plaque_PPH4>0.8 | logTG_PPH4>0.8 | LDL_PPH4>0.8 | HDL_PPH4>0.8 | TC_PPH4>0.8 | PP_PPH4>0.8 | SBP_PPH4>0.8 | DBP_PPH4>0.8 | Matsunaga_PPH4>0.8 | Koyama_PPH4>0.8 | Hartiala_PPH4>0.8 | vdh_PPH4>0.8, 1,0)]
-coloc[, indy_evidence:=ifelse(Topmed_CAC_PPH3>0.8 | CAC_1KG_PPH3>0.8 | CHARGE_IMT_PPH3>0.8 | CHARGE_plaque_PPH3>0.8 | logTG_PPH3>0.8 | LDL_PPH3>0.8 | HDL_PPH3>0.8 | TC_PPH3>0.8 | PP_PPH3>0.8 | SBP_PPH3>0.8 | DBP_PPH3>0.8 | Matsunaga_PPH3>0.8 | Koyama_PPH3>0.8 | Hartiala_PPH3>0.8 | vdh_PPH3>0.8, 1,0)]
+coloc <- reduce(genes, full_join, by = "gene_name")
+coloc[, coloc_evidence:=0]
+coloc[Topmed_CAC_PPH4>0.8 | CAC_1KG_PPH4>0.8 | CHARGE_IMT_PPH4>0.8 | CHARGE_plaque_PPH4>0.8 | logTG_PPH4>0.8 | LDL_PPH4>0.8 | HDL_PPH4>0.8 | TC_PPH4>0.8 | PP_PPH4>0.8 | SBP_PPH4>0.8 | DBP_PPH4>0.8 | Matsunaga_PPH4>0.8 | Koyama_PPH4>0.8 | Hartiala_PPH4>0.8 | vdh_PPH4>0.8, coloc_evidence:=1]
+coloc[, indy_evidence:=0]
+coloc[Topmed_CAC_PPH3>0.8 | CAC_1KG_PPH3>0.8 | CHARGE_IMT_PPH3>0.8 | CHARGE_plaque_PPH3>0.8 | logTG_PPH3>0.8 | LDL_PPH3>0.8 | HDL_PPH3>0.8 | TC_PPH3>0.8 | PP_PPH3>0.8 | SBP_PPH3>0.8 | DBP_PPH3>0.8 | Matsunaga_PPH3>0.8 | Koyama_PPH3>0.8 | Hartiala_PPH3>0.8 | vdh_PPH3>0.8, indy_evidence:=1]
 
 write.table(coloc, "UVA_QTL_coloc_res_Aug2022.txt", row.names=F, quote=F, sep="\t")
