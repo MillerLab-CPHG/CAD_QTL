@@ -1,5 +1,6 @@
 library(data.table)
 library(dplyr)
+library(stringr)
 
 ##### Purpose of this script is annotating SNPEff results from logfile #####
 snpeff <- fread("qtl_snpeff_annotations.txt", select=c(1:3,8)) ## read in log results
