@@ -9,22 +9,22 @@ bed="1000G_plink"
 
 module load plink
 
-a="account=cphg-millerlab-vip"
-p="p standard"
+a="account=accountname"
+p="p queue"
 m="mem=100g"
-t="t 20:00"
+t="t 10:00"
 
 for chr in "22"; do
 
         while read gene; do
 
 ### Step 3: make gene-specific LD files, in this case using non-Finnish Europeans from 1000G phase 3
-        keepsnpsfile="/scratch/ch2um/chr${chr}plink/new_${gene}_snplist.tmp"
-        bfile="/scratch/ch2um/${gene}_${bed}"
-        outfile="/scratch/ch2um/chr${chr}plink/${gene}"
+        keepsnpsfile="/scratch/dir/chr${chr}plink/new_${gene}_snplist.tmp"
+        bfile="/scratch/dir/${gene}_${bed}"
+        outfile="/scratch/dir/chr${chr}plink/${gene}"
 
         sbatch -o ${gene}_LD.blog -n 2 --$a --$m -$t -$p --wrap="plink --bfile ${bfile}_${pop} --r2 square spaces --chr $chr --extract ${keepsnpsfile} --out ${outfile}"    
 
-        done < /scratch/ch2um/chr${chr}_Sep2022_eQTL_siggenes.lst
+        done < /scratch/dir/chr${chr}_Date_eQTL_siggenes.lst
 done
 
