@@ -1,10 +1,5 @@
-#################### Looking at colocalization using SMR and coloc, as well as paintor results
+#################### Looking at colocalization using coloc, as well as paintor results
 #################### For reference files used in this script, please see Themes_and_baselines.R
-
-#################### For mixQTL analyses, see mixQTL_figs.R
-#################### For local-ancestry-adjusted eQTL analyses, see LA_QTL_figs.R
-#################### For differential expression or RNA bulk data plots, see RNAseq_expression_figs.R
-#################### For generalization/replication, see "UVA_QTL_vs_GTEx_STARNET_figs.R"
 
 setwd("/Users/ch2um/Desktop/QTL")
 
@@ -18,49 +13,117 @@ setkey(all_coloc, gene_name)
 setkey(mixq_coloc, gene_name)
 forplot <- all_coloc[mixq_coloc, nomatch=0]
 
-##### Heatmap coloc #####
-forplot.m <- as.data.table(melt(forplot[mix_bh<0.05 & (BBJ_PPH4>0.8 | Matsunaga_PPH4>0.8 | hart2_PPH4>0.8 | 
-                                vdh_PPH4>0.8 | pp_PPH4>0.8 | dbp_PPH4>0.8 | sbp_PPH4>0.8 | top_cac_PPH4>0.8 | imt_PPH4>0.8 | 
-                                  CAC_1000G_PPH4>0.8 | CHARGE_plaque_PPH4>0.8), 
-                          c("gene_name", "BBJ_PPH4", "Matsunaga_PPH4", "hart2_PPH4", "vdh_PPH4", "pp_PPH4", "dbp_PPH4", 
-                          "sbp_PPH4", "top_cac_PPH4", "imt_PPH4", "CAC_1000G_PPH4", "CHARGE_plaque_PPH4")], 
-                          id.vars="gene_name")) 
-forplot.m <- forplot.m[!is.na(gene_name) & !is.na(value)]
+##### Plotting coloc heatmap in 500 steps #####
+forplot.m <- as.data.table(melt(forplot[mix_bh<0.05 & coloc_evidence==1, c("gene_name", "Koyama_CAD_PPH4", "Matsunaga_CAD_PPH4", 
+                          "Hartiala_CAD_PPH4", "vdh_CAD_PPH4", "PP_PPH4", "DBP_PPH4", "SBP_PPH4", "LDL_PPH4", "HDL_PPH4", "TC_PPH4",
+                          "logTG_PPH4", "CAC_1000G_PPH4", "CHARGE_IMT_PPH4", "CHARGE_Plaque_PPH4", "MVP_TRANS_PPH4","MVP_AFR_PPH4", 
+                          "MVP_HIS_PPH4", "MVP_TRANS_PPH4")], 
+                          id.vars="gene_name")) #"Topmed_CAC_PPH4", 
+forplot.m <- forplot.m[!is.na(gene_name)]
 
-gene_list <- as.data.table(c("gene_1","gene_2","gene_3","gene_4","gene_5","gene_5","gene_7","gene_8"))
-setnames(gene_list, "V1", "gene_name")
-gene_list[, n:=1:nrow(gene_list)]
-setkey(gene_list, gene_name); setkey(forplot.m, gene_name)
-qplot <- forplot.m[gene_list]
-qplot[is.na(value), value:=0]
-qplot <- qplot[!is.na(variable) & !is.na(gene_name)]
-setorder(qplot, -n)
+#### complex heatmap plot for clustering algorithm only not for final figure #####
+forplot.h <- as.data.frame(forplot[mix_bh<0.05 & gene_type=="protein_coding" & coloc_evidence==1, c("gene_name", "Koyama_CAD_PPH4", "Matsunaga_CAD_PPH4", 
+                            "Hartiala_CAD_PPH4", "vdh_CAD_PPH4", "PP_PPH4", "DBP_PPH4", "SBP_PPH4", "LDL_PPH4", "HDL_PPH4", "TC_PPH4",
+                            "logTG_PPH4", "CAC_1000G_PPH4", "CHARGE_IMT_PPH4", "CHARGE_Plaque_PPH4", "MVP_TRANS_PPH4", "MVP_AFR_PPH4", 
+                            "MVP_HIS_PPH4", "MVP_EUR_meta_PPH4")]) #"Topmed_CAC_PPH4", 
+rownames(forplot.h) <- forplot.h$gene_name
+forplot.h$gene_name <- NULL
+setnames(forplot.h, c("Koyama CAD", "Matsunaga CAD", "Hartiala CAD", "van der Harst CAD", "Evangelou PP", 
+                      "Evangelou DBP", "Evangelou SBP", "Graham LDL", "Graham HDL", "Graham TC", "Graham logTG",
+                      "1000G CAC", "CHARGE IMT", "CHARGE Plaque", "MVP All", "MVP AFR", "MVP HIS", "MVP EUR")) #"TOPMed CAC", 
+mycols <- colorRamp2(breaks = c(0, 0.5, 1), colors = c("#FFFFFF", "#CCE5FF", "#000099"))
+ht_opt(heatmap_column_names_gp = gpar(fontsize = 20))
+heat <- Heatmap(forplot.h, name = "Colocalization PPH4", col=colorRamp2(breaks = c(0, 0.5, 1), colors = c("#FFFFFF", "#CCFFCC", "#006633")),
+        column_title = " ", row_title = " ",
+        row_names_gp = gpar(fontsize = 16), cluster_columns=F)
 
-qplot[, gene_name:=reorder(gene_name, -n)]
-qplot[variable=="BBJ_PPH4", study:="Koyama CAD"]; qplot[variable=="Matsunaga_PPH4", study:="Matsunaga CAD"]
-qplot[variable=="hart2_PPH4", study:="Hartiala MI"]; qplot[variable=="vdh_PPH4", study:="van der Harst CAD"]
-qplot[variable=="pp_PPH4", study:="Evangelou PP"]; qplot[variable=="dbp_PPH4", study:="Evangelou DBP"]
-qplot[variable=="sbp_PPH4", study:="Evangelou SBP"]; qplot[variable=="top_cac_PPH4", study:="TOPMed CAC"]
-qplot[variable=="imt_PPH4", study:="Franceschini IMT"]; qplot[variable=="CHARGE_plaque_PPH4", study:="Franceschini plaque"]
-qplot[variable=="CAC_1000G_PPH4", study:="1000G CAC"]
-
-heat <-  ggplot(qplot, aes(x=study, y=gene_name)) + 
-  geom_tile(fill="forestgreen", alpha=qplot$value) + 
-  scale_fill_identity() + scale_alpha_continuous() + th + 
-  guides(y = guide_axis(n.dodge = 2)) +
-  theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.text.y = element_text(vjust = 1, hjust=1, face="italic", family="serif", size=40),
-    axis.text.x = element_text(angle = 90, hjust=1, vjust=1, face="bold", family="serif", size=40),
-    plot.margin = margin(t = 25, r = 25, b = 25, l = 25))
-
-pdf(file="Coloc_eqtl_heatmap.pdf", width=15, height=30)
+pdf(file="Coloc_heatmap_cluster_Nov2022.pdf", width=12, height=30)
 heat
 dev.off()
 
+##### List of genes clustered heirarchically using complex heatmap above #####
+gene_list <- as.data.table(c("ZNF100","TCF21","ARHGAP42","THSD4","FHL3","ADAMTS3","TBX20","BACH1","SKIV2L", 
+                             "SREBF1","PAPPA","CCDC38","SNRPF","TRIM54","NPHP3","SFRP2","SMOC1","SNX31",
+                             "SPATA20","HPSE2","POGLUT3","GSTM1","ZFAND2A","CAPG","SCMH1","CENPV",
+                             "ZNF641","SLC15A2","STEAP1B","MET","IL5","STEAP2","MANSC4","CMTM3","ZFYVE19",
+                             "POLL","QSOX1","ANKDD1B","BTBD16","PGPEP1","LSM4","HLA−C")) #RPL71, XRCC2
+setnames(gene_list, "V1", "gene_name"); gene_list[, n:=1:nrow(gene_list)]
 
-##### Making SMR coloc plot for NDUFV3 #####
+##### Single-cell RNAseq cell-type-specific expression #####
+sc_names <- c("p_val", "avg_log2FC", "pct1", "pct2", "adj_p", "cell_type", "gene")
+
+##### Alsaigh scRNAseq cell-type-specific expression
+al <- fread("/path/Alsaigh_differential_markergenes_by_tabulus_sapien_reference.csv"); setnames(al, sc_names)
+al <- al[gene %in% gene_list$gene_name & pct1>0.2 & adj_p<0.05]
+setorder(al, adj_p); al <- al[!duplicated(gene)]
+gene_list[gene_name %in% al[cell_type=="EC", gene], Alsaigh:="darkviolet"] 
+gene_list[gene_name %in% al[cell_type=="FB", gene], Alsaigh:="skyblue"] 
+gene_list[gene_name %in% al[cell_type=="Mø" | cell_type=="T Cell" | cell_type=="Mast Cell", gene], Alsaigh:="lightpink"] 
+gene_list[gene_name %in% al[cell_type=="SMCs" | cell_type=="Pericyte Cell", gene], Alsaigh:="goldenrod3"] 
+
+#### Hu scRNAseq cell-type-specific expression
+hu <- fread("/path/Hu_differential_markergenes_by_tabulus_sapien_reference.csv"); setnames(hu, sc_names)
+hu <- hu[gene %in% gene_list$gene_name & pct1>0.2 & adj_p<0.05]
+setorder(hu, adj_p); hu <- hu[!duplicated(gene)]
+gene_list[gene_name %in% hu[cell_type=="EC", gene], Hu:="darkviolet"] 
+gene_list[gene_name %in% hu[cell_type=="FB", gene], Hu:="skyblue"] 
+gene_list[gene_name %in% hu[cell_type=="Mø" | cell_type=="T Cell" | cell_type=="Mast Cell", gene], Hu:="lightpink"] 
+gene_list[gene_name %in% hu[cell_type=="SMCs" | cell_type=="Pericyte Cell", gene], Hu:="goldenrod3"] 
+
+#### Wirka scRNAseq cell-type-specific expression
+wi <- fread("/path/Wirka_differential_markergenes_by_tabulus_sapien_reference.csv"); setnames(wi, sc_names)
+wi <- wi[gene %in% gene_list$gene_name & pct1>0.2 & adj_p<0.05]
+setorder(wi, adj_p); wi <- wi[!duplicated(gene)]
+gene_list[gene_name %in% wi[cell_type=="EC", gene], Wirka:="darkviolet"] 
+gene_list[gene_name %in% wi[cell_type=="FB", gene], Wirka:="skyblue"] 
+gene_list[gene_name %in% wi[cell_type=="Mø" | cell_type=="T Cell" | cell_type=="Mast Cell", gene], Wirka:="lightpink"] 
+gene_list[gene_name %in% wi[cell_type=="SMCs" | cell_type=="Pericyte Cell", gene], Wirka:="goldenrod3"] 
+
+#### Making combined plot dataset #####
+setkey(gene_list, gene_name); setkey(forplot.m, gene_name)
+pplot <- gene_list[forplot.m]
+pplot[is.na(value), value:=0]
+pplot <- pplot[!is.na(n)]
+studies <- as.data.table(c("Matsunaga_CAD_PPH4", "Koyama_CAD_PPH4", "Hartiala_CAD_PPH4", "vdh_CAD_PPH4", "MVP_TRANS_PPH4",  
+                           "DBP_PPH4", "SBP_PPH4", "PP_PPH4", "HDL_PPH4", "LDL_PPH4", "logTG_PPH4", "TC_PPH4", "CAC_1000G_PPH4", 
+                           "CHARGE_IMT_PPH4", "CHARGE_plaque_PPH4")) 
+setkey(studies, V1); setkey(pplot, variable)
+colocplot <- pplot[studies]
+colocplot <- colocplot[!is.na(variable) & !is.na(gene_name)]
+colocplot[, m:=1:nrow(colocplot)]
+
+colocplot[, gene_name:=reorder(gene_name, -m)]
+colocplot[variable=="Koyama_CAD_PPH4", study:="Koyama CAD"]; colocplot[variable=="Matsunaga_CAD_PPH4", study:="Matsunaga CAD"]
+colocplot[variable=="Hartiala_CAD_PPH4", study:="Hartiala MI"]; colocplot[variable=="vdh_CAD_PPH4", study:="van der Harst CAD"]
+colocplot[variable=="PP_PPH4", study:="Evangelou PP"]; colocplot[variable=="DBP_PPH4", study:="Evangelou DBP"]
+colocplot[variable=="SBP_PPH4", study:="Evangelou SBP"]; colocplot[variable=="Topmed_CAC_PPH4", study:="TOPMed CAC"]
+colocplot[variable=="CHARGE_IMT_PPH4", study:="Franceschini IMT"]; colocplot[variable=="CHARGE_plaque_PPH4", study:="Franceschini plaque"]
+colocplot[variable=="CAC_1000G_PPH4", study:="Kavousi CAC"]; colocplot[variable=="logTG_PPH4", study:="Graham logTG"]
+colocplot[variable=="LDL_PPH4", study:="Graham LDL"]; colocplot[variable=="HDL_PPH4", study:="Graham HDL"]
+colocplot[variable=="TC_PPH4", study:="Graham TC"]; colocplot[variable=="MVP_TRANS_PPH4", study:="Tcheandjieu CAD"]
+
+##### Finally making plot #####
+colocplot[, gene_name:=reorder(gene_name, n)]
+
+heat <-  ggplot(colocplot, aes(x=study, y=gene_name)) + plot_th + 
+  geom_tile(fill="black", alpha=colocplot$value) + 
+  scale_fill_identity() + scale_alpha_continuous() + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(vjust=0.5, hjust=1, size=40, face="plain")
+    axis.text.y = element_text(angle = 90, hjust=0.5, vjust=0.5, face="italic", family="sans", size=40),
+    plot.margin = margin(t = 25, r = 25, b = 25, l = 25)) 
+
+pdf(file="Coloc_eqtl_heatmap_Nov2022.pdf", width=16, height=26)
+heat +  geom_tile(data=colocplot, aes(y=-1, x=gene_name, fill=Alsaigh)) + 
+        geom_tile(data=colocplot, aes(y=-2, x=gene_name, fill=Hu)) + 
+        geom_tile(data=colocplot, aes(y=-3, x=gene_name, fill=Wirka))
+dev.off()
+
+
+##### Making coloc regional plot for NDUFV3 ##### 
+#(Didn't end up including this in paper but format was used for a couple other figures)
 ndufv3_qtl <- fread("mixQTL_NDUFV3.txt", select=c(1:3,14,18))
 setnames(ndufv3_qtl, c("gene", "gene_name","variant","eQTL_p","method.meta"))
 hg38_freq <- fread("hg38_allele_freqs.txt", select=c(1:3))
@@ -89,50 +152,28 @@ coloc_m.m <- coloc_m.m[!is.na(value) & value<0.05 & pos>42700000]
 
 multi <- ggplot(data=coloc_m.m, aes(x=pos, y=-log10(value), color=variable)) + th + 
                 labs(x="Position (Chromosome 21)", y=expression("log10(p-value)")) + scale_color_identity() + 
-# Adding PDE9A
-                geom_segment(aes(x=42700000, xend=42775509, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42775509, xend=42775509, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_text(aes(x=(42734000), y=(-1.5), label="PDE9A"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding WDR4
-                geom_segment(aes(x=42843094, xend=42879531, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42843094, xend=42843094, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42879531, xend=42879531, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_text(aes(x=(42860000), y=(-1.5), label="WDR4"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding NDUFV3
-                geom_segment(aes(x=42893268, xend=42913304, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42893268, xend=42893268, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42913304, xend=42913304, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_text(aes(x=(42903300), y=(-3.5), label="NDUFV3"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding PKNOX1
-                geom_segment(aes(x=42974562, xend=43033931, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=42974562, xend=42974562, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43033931, xend=43033931, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_text(aes(x=(43003900), y=(-1.5), label="PKNOX1"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding CBS
-                geom_segment(aes(x=43053880, xend=43072193, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43053880, xend=43053880, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43072193, xend=43072193, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_text(aes(x=(43063190), y=(-3.5), label="CBS"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding U2AF1
-                geom_segment(aes(x=43092956, xend=43107565, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43092956, xend=43092956, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43107565, xend=43107565, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_text(aes(x=(43100265), y=(-1.5), label="U2AF1"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding CRYAA
-                geom_segment(aes(x=43169601, xend=43172294, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43169601, xend=43169601, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43172294, xend=43172294, y=(-2.25), yend=(-2.75), color="#490291"), size=1.5) +
-                geom_text(aes(x=(43171500), y=(-3.5), label="CRYAA"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# Adding SIK1
-                geom_segment(aes(x=43414483, xend=43427131, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43414483, xend=43414483, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_segment(aes(x=43427131, xend=43427131, y=(-0.75), yend=(-0.25), color="#490291"), size=1.5) +
-                geom_text(aes(x=(43420500), y=(-1.5), label="SIK1"), color="#490291", family="serif", size=5.5, fontface=4) + 
-# OK finally plotting GWAS/eQTL results
+# Adding PDE9A, WDR4, NDUFV3, PKNOX1, CBS, U2AF1, CRYAA, SIK1
+                geom_segment(aes(x=42700000, xend=42775509, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(42734000), y=(-1.5), label="PDE9A"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=42843094, xend=42879531, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(42860000), y=(-1.5), label="WDR4"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=42893268, xend=42913304, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(42903300), y=(-3.5), label="NDUFV3"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=42974562, xend=43033931, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(43003900), y=(-1.5), label="PKNOX1"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=43053880, xend=43072193, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(43063190), y=(-3.5), label="CBS"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=43092956, xend=43107565, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(43100265), y=(-1.5), label="U2AF1"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=43169601, xend=43172294, y=(-2.5), yend=(-2.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(43420500), y=(-3.5), label="CRYAA"), color="#490291", family="sans", size=5.5, fontface=4) + 
+                geom_segment(aes(x=43427131, xend=43414483, y=(-0.5), yend=(-0.5), color="#490291"), size=1.5, arrow=arrow(length=unit(0.5, "cm"))) +
+                geom_text(aes(x=(43420500), y=(-1.5), label="SIK1"), color="#490291", family="sans", size=5.5, fontface=4) + 
+# Plotting GWAS/eQTL results
                 geom_point(data=coloc_m.m[variable=="eQTL_p"], cex=6, shape=22, color="gray50", fill="maroon", alpha=0.75, ) +
-                geom_point(data=coloc_m.m[variable=="DBP_p"], cex=6, shape=21, fill="gray80", color="gray20") + 
+                geom_point(data=coloc_m.m[variable=="DBP_p"], cex=6, shape=21, color="gray20", fill="gray80") + 
                 geom_point(data=coloc_m.m[variable=="Hart2_p"], cex=7, shape=23, color="gray50", fill="green3") + 
-                geom_point(data=coloc_m.m[variable=="Top_CAC_p"], cex=6, shape=24, fill="blue3", color="gray50", alpha=0.6) + 
+                geom_point(data=coloc_m.m[variable=="Top_CAC_p"], cex=6, shape=24, color="gray50", fill="blue3", alpha=0.6) + 
                 geom_label_repel(data=coloc_m.m[variable=="DBP_p" & rsid=="rs12627514"], aes(label="rs12627514, SMRp = 4.6e-7"), 
                                 fill="white", colour="gray20", size=7, family = "serif", segment.alpha = 0.75, 
                                 label.padding=0.5, box.padding=0.3, nudge_y=(-1.5), nudge_x=(-200000)) + 
@@ -146,6 +187,6 @@ multi <- ggplot(data=coloc_m.m, aes(x=pos, y=-log10(value), color=variable)) + t
                                 fill="white", colour="blue3", size=7, family = "serif", segment.alpha = 0.75, 
                                 label.padding=0.5, box.padding=0.3, nudge_y=5, nudge_x=(-30000)) 
   
-pdf("Coloc_NDUFV3_regional_plot_July2022.pdf", h=8.5, w=11)
+pdf("Coloc_NDUFV3_regional_plot_2022.pdf", h=8.5, w=11)
 multi
 dev.off()
