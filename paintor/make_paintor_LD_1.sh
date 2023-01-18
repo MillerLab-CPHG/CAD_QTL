@@ -1,5 +1,4 @@
 ########### The purpose of this script series is to generate (temporary bc they are massively large) LD files in Plink to prep input files for fastenloc or paintor prep. This is necessary because both tools require multiple input files which each have the exact same SNPs in the exact same order with no identifying column or row names. If only running a couple loci on each chromosome (i.e., no genes which might both have the same SNP), you could just calculate one file per chromosome but the LD matrices are VERY large so beware it will immediately take up a lot of space. 
-#### Suggested implementation is to uncomment and run each step separately by chromosome and delete temporary files in between for space efficiency.
 
 #### bcftools github: http://samtools.github.io/bcftools/bcftools.html
 #### tabix website: http://www.htslib.org/doc/tabix.html
