@@ -7,6 +7,8 @@
 ######### IMPORTANT NOTE: Note: All file formats are assumed to be single space delimited. 
 ######### If your file is tab-delimited you can use the following command to modify: sed -i 's/\t/ /g' <filename>
 
+######### Recommend running one chromosome at a time all the way through the LD matrix and vcf generating scripts the removing temp files before starting next chromosome because all the different files can take up a lot of disk space
+
 ########### Running paintor ###########
 
 for chr in {1..22}; do
@@ -20,8 +22,8 @@ while read gene; do
 
 mv $input_dir/${gene}_EUR.ld $input_dir/${gene}.ld
 ## Make gene-specific results files
-                zcat /scratch/ch2um/Apr22_mixqtl_gwas_forpaintor_chr${chr}.txt.gz | grep "${gene}$" | expand -t 1 > $input_dir/${gene}.tmp
-                zcat /scratch/ch2um/Apr22_mixqtl_gwas_forpaintor_chr${chr}.txt.gz | head -1 | expand -t 1 > $input_dir/${gene}
+                zcat /scratch/dir/Apr22_mixqtl_gwas_forpaintor_chr${chr}.txt.gz | grep "${gene}$" | expand -t 1 > $input_dir/${gene}.tmp
+                zcat /scratch/dir/Apr22_mixqtl_gwas_forpaintor_chr${chr}.txt.gz | head -1 | expand -t 1 > $input_dir/${gene}
                         while read snp; do
                         grep "$snp\ " $input_dir/${gene}.tmp >> $input_dir/${gene}
                         done < $input_dir/new_${gene}_snplist.tmp
@@ -34,7 +36,7 @@ mv $input_dir/${gene}_EUR.ld $input_dir/${gene}.ld
                         done < $input_dir/new_${gene}_snplist.tmp
                 echo "$gene" > $input_dir/${gene}_name.tmp
 
-        list_files="/scratch/ch2um/chr${chr}plink/${gene}_name.tmp"
+        list_files="/scratch/dir/chr${chr}plink/${gene}_name.tmp"
 
         a="cphg-millerlab-vip"
         m="80g"
@@ -43,12 +45,7 @@ mv $input_dir/${gene}_EUR.ld $input_dir/${gene}.ld
 
 ## Example submission: PAINTOR -input.files [input filename] -in [input directory] -out [output directory] -Zhead [Zscore header(s)] -LDname [LD suffix(es)] -annotations [annotation1,annotation2...] <other options>     
 ## For CAD GWAS
-        sbatch -o paintor_logs/${gene}_H3K27AC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld -Zhead UVAQTL_Z,GCST011365_Z,GCST005194_Z \
-        -annotations H3K27AC -Gname ${gene}_H3K27AC_enrichment -Lname ${gene}_H3K27AC_LogBayes -RESname CAD_H3K27AC_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_2annot.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
+        sbatch -o paintor_logs/${gene}_H3K.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
         -in $input_dir -out $output_dir -LDname ld,ld,ld -Zhead UVAQTL_Z,GCST011365_Z,GCST005194_Z \
         -annotations H3K4ME3,H3K27AC -Gname ${gene}_H3K_enrichment -Lname ${gene}_H3K_LogBayes -RESname CAD_H3K_results \
         -set_seed 8675309"
@@ -64,51 +61,9 @@ mv $input_dir/${gene}_EUR.ld $input_dir/${gene}.ld
         -annotations H3K27AC -Gname ${gene}_H3K27AC_enrichment -Lname ${gene}_H3K27AC_LogBayes -RESname BP_H3K27AC_results \
         -set_seed 8675309"
 
-        sbatch -o paintor_logs/${gene}_2annot.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld -Zhead UVAQTL_Z,PP_Z,SBP_Z,DBP_Z \
-        -annotations H3K4ME3,H3K27AC -Gname ${gene}_H3K_enrichment -Lname ${gene}_H3K_LogBayes -RESname BP_H3K_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_ABC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld -Zhead UVAQTL_Z,PP_Z,SBP_Z,DBP_Z \
-        -annotations ABC_score -Gname ${gene}_ABC_enrichment -Lname ${gene}_ABC_LogBayes -RESname BP_ABC_results\
-        -set_seed 8675309"
-
-## For coronary traits GWAS
-        sbatch -o paintor_logs/${gene}_H3K27AC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,CAC_1KG_Z,Topmed_CAC_Z,IMT_Z,Plaque_Z \
-        -annotations H3K27AC -Gname ${gene}_H3K27AC_enrichment -Lname ${gene}_H3K27AC_LogBayes -RESname cor_traits_H3K27AC_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_2annot.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,CAC_1KG_Z,Topmed_CAC_Z,IMT_Z,Plaque_Z \
-        -annotations H3K4ME3,H3K27AC -Gname ${gene}_H3K_enrichment -Lname ${gene}_H3K_LogBayes -RESname cor_traits_H3K_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_ABC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,CAC_1KG_Z,Topmed_CAC_Z,IMT_Z,Plaque_Z \
-        -annotations ABC_score -Gname ${gene}_ABC_enrichment -Lname ${gene}_ABC_LogBayes -RESname cor_traits_ABC_results\
-        -set_seed 8675309"
-
-## For cholesterol GWAS
-        sbatch -o paintor_logs/${gene}_H3K27AC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,HDL_Z,LDL_Z,TC_Z,logTG_Z \
-        -annotations H3K27AC -Gname ${gene}_H3K27AC_enrichment -Lname ${gene}_H3K27AC_LogBayes -RESname cholesterol_H3K27AC_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_2annot.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,HDL_Z,LDL_Z,TC_Z,logTG_Z \
-        -annotations H3K4ME3,H3K27AC -Gname ${gene}_H3K_enrichment -Lname ${gene}_H3K_LogBayes -RESname cholesterol_H3K_results \
-        -set_seed 8675309"
-
-        sbatch -o paintor_logs/${gene}_ABC.log --mem=$m --account=$a -p $p -t $t --wrap="PAINTOR -input $list_files \
-        -in $input_dir -out $output_dir -LDname ld,ld,ld,ld,ld -Zhead UVAQTL_Z,HDL_Z,LDL_Z,TC_Z,logTG_Z \
-        -annotations ABC_score -Gname ${gene}_ABC_enrichment -Lname ${gene}_ABC_LogBayes -RESname cholesterol_ABC_results\
-        -set_seed 8675309"
-
 # grep dumped paintor_logs/${gene}_H3K27AC.log >> /scratch/ch2um/Segfault_genes.lst
 
-        done < /scratch/ch2um/paintor_genes_chr${chr}_June22.lst
+        done < /scratch/dir/paintor_genes_chr${chr}.lst
 done
 
 
