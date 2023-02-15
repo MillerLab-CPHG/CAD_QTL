@@ -4,6 +4,6 @@ The set of scripts in this repo are intended to generate the necessary input fil
 
 This is a brief overview of our study design, which involved two methods (inferred local ancestry adjustment with permuted effect estimates generated with QTLtools and a combined haplotype-specific expression and total read count regression estimates generated with mixQTL) to identify expression QTLs in human coronary artery, as well as a separate analysis of splicing QTLs also performed with QTLtools. QTL identification was followed by various fine-mapping and annotation efforts utilizing the scripts in the respectively named folders. Links to tools used should be included in all scripts.
 
-![Hodonsky_Graphical_Abstract](https://user-images.githubusercontent.com/48288433/219073368-cc7e85da-3f31-46f6-8af1-990222c1fc6c.png)
+![QTL_cropped_graphical_abstract](https://user-images.githubusercontent.com/48288433/219075077-1a9a251d-335e-4648-b9fa-8b74ad09caac.png)
 
 For questions regarding scripts or implementation, please email Chani at ch2um at virginia dot edu. 
